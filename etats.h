@@ -8,7 +8,7 @@ protected:
    unsigned int x ; // nb cellules horizontales (pour 1D et 2D)
 
 public:
-   Etat(unsigned int dim ,unsigned int x).
+   Etat(unsigned int dim ,unsigned int x);
    unsigned int getDimension() const {return dimension;}
    unsigned int getX() const {return x;}
    virtual void afficherEtat() const =0;
@@ -26,7 +26,7 @@ public:
    void afficherEtat() const;
    ~Etat1D();
    Etat1D(const Etat1D& e);
-   Etat1D& operator=(const Etat1D& e); //est ce qu'on a besoin d'un constructeur de recopie et une surcharge de operateur = ? Ou bien on les mets en privé et on ne les defini pas
+   Etat1D& operator=(const Etat1D& e); //est ce qu'on a besoin d'un constructeur de recopie et une surcharge de operateur = ? Ou bien on les mets en privÃ© et on ne les defini pas
 
 };
 
