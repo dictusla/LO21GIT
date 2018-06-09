@@ -58,8 +58,13 @@ private slots:
 
 class config2D : public configurateur{
     Q_OBJECT
-    QHBoxLayout* lay1;
-    QLabel* qwea;
+    QVBoxLayout* lay1;
+    QHBoxLayout* layMin;
+    QHBoxLayout* layMax;
+    QLabel* live;
+    QLabel* die;
+    QSpinBox* Min;
+    QSpinBox* Max;
     config2D(const config2D&) = delete;
     config2D& operator=(const config2D&) = delete;
 protected:
@@ -69,6 +74,8 @@ public:
     QString getNom();
     static QString nom;
 private slots:
+    void synchMax(int);
+    void synchMin(int);
     void setAutomate();
 };
 

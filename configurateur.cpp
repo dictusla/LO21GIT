@@ -55,23 +55,43 @@ config1D::~config1D() {}
 QString config1D::getNom(){return config1D::nom;}
 
 void config1D::setAutomate(){
-    automat = new Automate1D();
+    automat = new Automate1D(0);
 }
 
 config2D::config2D() {
-    lay1 = new QHBoxLayout;
-    qwea = new QLabel("-completer-");
+    lay1 = new QVBoxLayout;
+    layMin = new QHBoxLayout;
+    layMax = new QHBoxLayout;
+    live = new QLabel("Minimum de voisins:");
+    die = new QLabel("Maximum de voisins:");
+    Min = new QSpinBox;
+    Max = new QSpinBox;
 
-    lay1->addWidget(qwea);
+    Min->setRange(0,8);
+    Max->setRange(0,8);
+
+    layMin->addWidget(live);
+    layMin->addWidget(Min);
+    layMax->addWidget(die);
+    layMax->addWidget(Max);
+    lay1->addLayout(layMin);
+    lay1->addLayout(layMax);
     specifique->addLayout(lay1);
+
+    connect(Min,SIGNAL(valueChanged(int)),this,SLOT(synchMax(int)));
+    connect(Max,SIGNAL(valueChanged(int)),this,SLOT(synchMin(int)));
 }
 
 config2D::~config2D() {}
 
 QString config2D::getNom(){return config1D::nom;}
 
+void config2D::synchMax(int a) {if(a>Max->value()) Max->setValue(a);}
+
+void config2D::synchMin(int a) {if(a<Min->value()) Min->setValue(a);}
+
 void config2D::setAutomate(){
-    automat = new Automate2D;
+    automat = new Automate2D(Min->value(), Max->value());
 }
 
 Interface::Interface() : nbTypes(1){
@@ -90,15 +110,15 @@ Interface::Interface() : nbTypes(1){
     typeAut->addItem(configurateur::nom);
 
     Bar->setMovable(false);
-    Bar->setFixedWidth(200);
+    Bar->setFixedWidth(210);
 
     lay1->addWidget(choixtype);
     lay1->addWidget(typeAut);
     commun->setLayout(lay1);
     configBar->setLayout(configLay);
     Bar->addWidget(commun);
-    Bar->addSeparator();
     Bar->addWidget(configBar);
+    Bar->addSeparator();
     this->addToolBar(Qt::LeftToolBarArea, Bar);
     this->setCentralWidget(area);
 

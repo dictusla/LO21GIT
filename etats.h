@@ -1,49 +1,57 @@
 #ifndef ETATS_H_INCLUDED
 #define ETATS_H_INCLUDED
 
+//#include "Automates.h"
+
+class EtatException {
+private:
+      std::string info;
+public:
+      EtatException(const std::string& message):info(message) {}
+      std::string getInfo() const { return info; }
+};
+
 class Etat
 {
 protected:
    unsigned int dimension ; // 1D ou 2D --> bool?
-   unsigned int x ; // nb cellules horizontales (pour 1D et 2D)
+   int x ; // nb cellules horizontales (pour 1D et 2D)
 
 public:
-   Etat(unsigned int dim ,unsigned int x);
+   Etat(unsigned int dim, int x);
    unsigned int getDimension() const {return dimension;}
-   unsigned int getX() const {return x;}
+   int getX() const { return x; }
    virtual void afficherEtat() const =0;
-
+   virtual ~Etat(){}
 };
 
 class Etat1D : public Etat
 {
-   unsigned int* valeur; // a voir avec string pour les couleurs
+   bool* valeur; // a voir avec string pour les couleurs
 
 public:
-   Etat1D(unsigned int dim ,unsigned int x);
-   int getCellule(unsigned int i)const;
-   void setCellule(unsigned int i, int val);
+   Etat1D(unsigned int dim ,int x);
+   bool getCellule( int i)const;
+   void setCellule( int i, bool val);
    void afficherEtat() const;
    ~Etat1D();
    Etat1D(const Etat1D& e);
-   Etat1D& operator=(const Etat1D& e); //est ce qu'on a besoin d'un constructeur de recopie et une surcharge de operateur = ? Ou bien on les mets en privé et on ne les defini pas
-
+   Etat1D& operator=(const Etat1D& e);
 };
 
 class Etat2D : public Etat
 {
-   unsigned int y; //nb cellules vertical
+   int y; //nb cellules vertical
    bool** tab;
 
 public:
-   Etat2D(unsigned int dim ,unsigned int x, unsigned int y);
-   unsigned int getY() const {return y;}
-   bool getCellule(unsigned int i, unsigned int j) const;
-   void setCellule(unsigned int i, unsigned int j, bool val);
+   Etat2D(unsigned int dim ,int x, int y);
+   int getY() const {return y;}
+   bool getCellule(int i, int j) const;
+   void setCellule(int i, int j, bool val);
    void afficherEtat() const;
    ~Etat2D();
    Etat2D(const Etat2D& e);
-   Etat2D& operator=(const Etat2D& e); //besoin ou pas?
-
+   Etat2D& operator=(const Etat2D& e);
 };
 #endif // ETATS_H_INCLUDED
