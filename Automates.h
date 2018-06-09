@@ -1,5 +1,6 @@
 #ifndef AUTOMATES_H_INCLUDED
 #define AUTOMATES_H_INCLUDED
+#include "etats.h"
 
 #include <iostream>
 #include "etats.h"
@@ -71,6 +72,5 @@ public:
 
 short unsigned int NumBitToNum(const std::string& num);
 std::string NumToNumBit(short unsigned int num);
-
 
 #endif // AUTOMATES_H_INCLUDED

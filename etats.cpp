@@ -43,7 +43,7 @@ Etat1D& Etat1D::operator=(const Etat1D& e)
 bool Etat1D::getCellule(int i)const
 {
    if (i>=getX()) throw EtatException("Cellule inexistante Etat1D");
-   return valeur[i];
+    return valeur[i];
 }
 
 void Etat1D::setCellule(int i, bool val)
