@@ -1,8 +1,11 @@
 #ifndef SIMULATEUR_H_INCLUDED
 #define SIMULATEUR_H_INCLUDED
+#include <typeinfo>
+#include "etats.h"
+#include "Automates.h"
 
 class Simulateur {
-	const Automate1D& automate;
+	const Automate& automate;
     Etat** etats;
     const Etat* depart;
 	 unsigned int nbMaxEtats;
@@ -12,8 +15,8 @@ class Simulateur {
     Simulateur& operator=(const Simulateur& s);
 
 public:
-	Simulateur(const Automate1D& a, unsigned int buffer = 2);
-	Simulateur(const Automate1D& a, const Etat1D& dep, unsigned int buffer = 2);
+	Simulateur(const Automate& a, unsigned int buffer = 2);
+	Simulateur(const Automate& a, const Etat& dep, unsigned int buffer = 2);
 	void setEtatDepart(const Etat& e);
 	void run(unsigned int nbSteps); // génère les n prochains états
 	void next(); // génère le prochain état
