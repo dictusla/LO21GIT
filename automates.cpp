@@ -37,14 +37,20 @@ Automate1D::Automate1D(unsigned short int num): numero(num),numeroBit(NumToNumBi
 Automate1D::Automate1D(const std::string& num) : numero(NumBitToNum(num)),numeroBit(num) {
 }
 
-void Automate1D::appliquerTransition(const Etat& dep, Etat& dest) const {
-	if (dep.getX() != dest.getX()) dest = dep;
+void Automate1D::appliquerTransition(const Etat& dep, Etat& dest) const
+{
+	const Etat1D& d=dynamic_cast<const Etat1D&>(dep);
+   Etat1D& a=dynamic_cast<Etat1D&>(dest);
+	if (d.getX() != a.getX())
+      a = d;
 	for (int i = 0; i < dep.getX(); i++) {
 		short int conf=0;
-		if (i > 0) conf+=dynamic_cast<const Etat1D&>(dep).getCellule(i - 1) * 4;
-		conf+=dynamic_cast<const Etat1D&>(dep).getCellule(i)*2;
-		if (i < dep.getX()-1) conf+=dynamic_cast<const Etat1D&>(dep).getCellule(i + 1);
-		dynamic_cast<Etat1D&>(dest).setCellule(i, numeroBit[7-conf]-'0');
+		if (i > 0)
+         conf+=d.getCellule(i - 1) * 4;
+		conf+=d.getCellule(i)*2;
+		if (i < dep.getX()-1)
+         conf+=d.getCellule(i + 1);
+		a.setCellule(i, numeroBit[7-conf]-'0');
 	}
 }
 
@@ -55,34 +61,60 @@ std::ostream& operator<<(std::ostream& f, const Automate1D& A) {
 
 void Automate2D::appliquerTransition (const Etat& dep, Etat& dest) const
 {
-   if (dep.getX() != dest.getX() || dynamic_cast<const Etat2D&>(dep).getY()!=dynamic_cast<Etat2D&>(dest).getY()) dest = dep;
-   //std::cout<<"dest dep ok, x= "<<dep.getX()<<" y= "<<dep.getY()<<std::endl;
+   const Etat2D& d=dynamic_cast<const Etat2D&>(dep);
+   Etat2D& a=dynamic_cast<Etat2D&>(dest);
+
+   if (dep.getX() != dest.getX() || d.getY()!= a.getY())
+      a=d;
+
    for (int i = 0; i < dep.getX(); i++)
    {
-      for(int j=0; j<dynamic_cast<const Etat2D&>(dep).getY(); j++)
+      for(int j=0; j < d.getY(); j++)
       {
          unsigned int nbVvivant=0;
-         //std::cout<<"avant boucles de get cellule ok"<<std::endl;
          for(int x=i-1; x<=i+1; ++x)
          {
             for(int y=j-1; y<=j+1; ++y)
             {
-               std::cout<<"x="<<x<<" y="<<y<<std::endl;
-               //std::cout<<"appel get cellule avec i="<<i<<"et j="<<j<<std::endl;
-               if ((x!=i || y!=j) && dynamic_cast<const Etat2D&>(dep).getCellule(x,y) )
-               {
+               if ((x!=i || y!=j) && d.getCellule(x,y) )
                   nbVvivant++;
-                  std::cout<<"  x="<<x<<" y="<<y<<" nb voisins vivants ++ --> "<<nbVvivant<<std::endl;
-               }
             }
          }
-         std::cout<<"i="<<i<<" j="<<j<<" nb voisins vivants : "<<nbVvivant<<std::endl;
          if (nbVvivant<minToNotDie || nbVvivant>maxToNotDie)
-            { //std::cout<<"appel set cellule avec i="<<i<<"et j="<<j<<std::endl;
-               dynamic_cast<Etat2D&>(dest).setCellule(i,j, false);}
+            {
+               a.setCellule(i,j, false);}
          else
-            { //std::cout<<"appel set cellule avec i="<<i<<"et j="<<j<<std::endl;
-               dynamic_cast<Etat2D&>(dest).setCellule(i, j, true);}
+            {
+               a.setCellule(i, j, true);}
+      }
+	}
+}
+
+void AutomateFdF::appliquerTransition (const Etat& dep, Etat& dest) const
+{
+   const EtatFdF& d=dynamic_cast<const EtatFdF&>(dep);
+   EtatFdF& a=dynamic_cast<EtatFdF&>(dest);
+
+   if (d.getX() != a.getX() || d.getY()!=a.getY())
+      a=d;
+
+   for (int i = 0; i < dep.getX(); i++)
+   {
+      for(int j=0; j < d.getY(); j++)
+      {
+         if (d.getCellule(i,j)==0)
+            a.setCellule(i,j,0);
+         else if (d.getCellule(i,j)==2)
+            a.setCellule(i,j,3);
+         else if (d.getCellule(i,j)==3)
+            a.setCellule(i,j,3);
+         else
+         {
+            if ( d.getCellule(i,j-1)==2 || d.getCellule(i,j+1)==2 || d.getCellule(i-1,j)==2 || d.getCellule(i+1,j)==2 )
+               a.setCellule(i,j,2);
+            else
+               a.setCellule(i,j,1);
+         }
       }
 	}
 }
@@ -125,3 +157,4 @@ const Automate1D& AutomateManager::getAutomate(std::string& num)
 {
    return getAutomate(NumBitToNum(num));
 }
+
