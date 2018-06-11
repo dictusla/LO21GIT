@@ -7,12 +7,14 @@
 
 
 Simulateur::Simulateur(const Automate& a, unsigned int buffer):
-    automate(a), etats(nullptr), depart(nullptr), nbMaxEtats(buffer),rang(0) {
+    automate(a), etats(nullptr), depart(nullptr), nbMaxEtats(buffer),rang(0)
+{
 	etats = new Etat*[nbMaxEtats];
 	for (unsigned int i = 0; i < nbMaxEtats; i++) etats[i] = nullptr;
 }
 Simulateur::Simulateur(const Automate& a, const Etat& dep, unsigned int buffer):
-    automate(a), etats(nullptr), depart(&dep), nbMaxEtats(buffer),rang(0) {
+    automate(a), etats(nullptr), depart(&dep), nbMaxEtats(buffer),rang(0)
+{
 	etats = new Etat*[nbMaxEtats];
 	for (unsigned int i = 0; i < nbMaxEtats; i++) etats[i] = nullptr;
 	if (typeid(dep)==typeid(Etat1D))
@@ -21,7 +23,8 @@ Simulateur::Simulateur(const Automate& a, const Etat& dep, unsigned int buffer):
       etats[0]= new Etat2D(dynamic_cast<const Etat2D&>(dep));
 }
 
-void Simulateur::build(unsigned int cellule) {
+void Simulateur::build(unsigned int cellule)
+{
 	if (cellule >= nbMaxEtats) throw AutomateException("erreur taille buffer");
 	if (etats[cellule] == nullptr)
    {
@@ -29,6 +32,8 @@ void Simulateur::build(unsigned int cellule) {
          etats[cellule] = new Etat1D(1,depart->getX());
       else if (typeid(depart)==typeid(Etat2D))
          etats[cellule] = new Etat2D(2,depart->getX(),dynamic_cast<const Etat2D*>(depart) ->getY());
+      else if (typeid(depart)==typeid(EtatFdF))
+         etats[cellule] = new EtatFdF(2,depart->getX(),dynamic_cast<const EtatFdF*>(depart) ->getY());
    }
 }
 
@@ -51,6 +56,8 @@ void Simulateur::next() {
       automate.appliquerTransition(dynamic_cast<const Etat1D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
    else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(Etat2D))
       automate.appliquerTransition(dynamic_cast<const Etat2D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
+   else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(EtatFdF))
+      automate.appliquerTransition(dynamic_cast<const EtatFdF&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
 }
 
 void Simulateur::run(unsigned int nb_steps) {
