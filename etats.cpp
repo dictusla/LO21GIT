@@ -79,8 +79,7 @@ bool Etat2D::getCellule(int i, int j) const
    //std::cout<<"get cellule avec i="<<i<<" et j="<<j<<std::endl;
    if (i<-1 || j<-1 || i>getX() || j>y) throw AutomateException("Cellule inexistante");
    if(i==-1 || j==-1 || i==getX() || j==y)
-      {std::cout<<"i="<<i<<" j="<<j<<" false\n";
-      return false;}
+      return false;
    return tab[i][j];
 }
 
@@ -119,17 +118,16 @@ Etat2D::Etat2D(const Etat2D& e) : Etat(e.getDimension(),e.getX())
 {
    y=e.y;
    tab= new bool*[getX()];
-   for (unsigned int i =0; i<getX(); i++)
+   for (unsigned int i =0; i<e.getX(); i++)
    {
       tab[i]=new bool[y] ;
-      for(unsigned int j=0; i<y; ++j) // ND ???
+      for(unsigned int j=0; j<y; ++j)
          tab[i][j]=e.tab[i][j];
    }
 }
 
 Etat2D& Etat2D::operator=(const Etat2D& e)
 {
-   std::cout<<"entree op ="<<std::endl;
    if(getX()!=e.getX())
    {
       for(unsigned int i=0; i<getX(); ++i)
@@ -176,11 +174,9 @@ EtatFdF::EtatFdF(unsigned int dim ,int x, int y): Etat(dim,x), y(y)
 
 int EtatFdF::getCellule(int i, int j) const
 {
-   //std::cout<<"get cellule avec i="<<i<<" et j="<<j<<std::endl;
    if (i<-1 || j<-1 || i>getX() || j>y) throw AutomateException("Cellule inexistante get");
    if(i==-1 || j==-1 || i==getX() || j==y)
-      {//std::cout<<"i="<<i<<" j="<<j<<" false\n";
-      return 0;}
+      return 0;
    return tab[i][j];
 }
 
@@ -222,11 +218,11 @@ void EtatFdF::afficherEtat() const
 EtatFdF::EtatFdF(const EtatFdF& e) : Etat(e.getDimension(),e.getX())
 {
    y=e.y;
-   tab= new int*[getX()];
-   for (unsigned int i =0; i<getX(); i++)
+   tab= new int*[e.getX()];
+   for (unsigned int i =0; i<e.getX(); i++)
    {
       tab[i]=new int[y] ;
-      for(unsigned int j=0; i<y; ++j) // ND ???
+      for(unsigned int j=0; j<y; ++j) // ND ???
          tab[i][j]=e.tab[i][j];
    }
 }

@@ -13,12 +13,9 @@ public:
 
 class Automate {
 
-    private:
-
     public:
         Automate() {}
         virtual ~Automate (){}
-
         virtual void appliquerTransition(const Etat& dep, Etat& dest) const = 0;
 
 };
@@ -69,7 +66,7 @@ class Automate2D :  public Automate
 class AutomateFdF : public Automate
 {
    public:
-
+         AutomateFdF() {}
         ~AutomateFdF () {}
         void appliquerTransition (const Etat& dep, Etat& dest) const;
 

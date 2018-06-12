@@ -10,22 +10,32 @@ Simulateur::Simulateur(const Automate& a, unsigned int buffer):
     automate(a), etats(nullptr), depart(nullptr), nbMaxEtats(buffer),rang(0)
 {
 	etats = new Etat*[nbMaxEtats];
-	for (unsigned int i = 0; i < nbMaxEtats; i++) etats[i] = nullptr;
+	for (unsigned int i = 0; i < nbMaxEtats; i++)
+      etats[i] = nullptr;
 }
 Simulateur::Simulateur(const Automate& a, const Etat& dep, unsigned int buffer):
     automate(a), etats(nullptr), depart(&dep), nbMaxEtats(buffer),rang(0)
 {
-	etats = new Etat*[nbMaxEtats];
-	for (unsigned int i = 0; i < nbMaxEtats; i++) etats[i] = nullptr;
+	etats = new Etat*[nbMaxEtats]; //plante la quand ca plante
+	if (!etats)
+      throw AutomateException("bad alloc of tab etats");
+
+	for (unsigned int i = 0; i < nbMaxEtats; i++)
+      etats[i] = nullptr;
+
 	if (typeid(dep)==typeid(Etat1D))
       etats[0] = new Etat1D(dynamic_cast<const Etat1D&>(dep));
    else if (typeid(dep)==typeid(Etat2D))
       etats[0]= new Etat2D(dynamic_cast<const Etat2D&>(dep));
+   else if (typeid(dep)==typeid(EtatFdF))
+      etats[0]= new EtatFdF(dynamic_cast<const EtatFdF&>(dep));
 }
 
 void Simulateur::build(unsigned int cellule)
 {
-	if (cellule >= nbMaxEtats) throw AutomateException("erreur taille buffer");
+	if (cellule >= nbMaxEtats)
+      throw AutomateException("erreur taille buffer");
+
 	if (etats[cellule] == nullptr)
    {
       if (typeid(depart)==typeid(Etat1D))
@@ -49,19 +59,23 @@ void Simulateur::reset() {
 }
 
 void Simulateur::next() {
-	if (depart == nullptr) throw AutomateException("etat depart indefini");
+	if (depart == nullptr)
+      throw AutomateException("etat depart indefini");
    rang++;
 	build(rang%nbMaxEtats);
+
 	if (typeid(etats[rang-1 % nbMaxEtats])==typeid(Etat1D))
       automate.appliquerTransition(dynamic_cast<const Etat1D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
    else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(Etat2D))
       automate.appliquerTransition(dynamic_cast<const Etat2D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
    else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(EtatFdF))
       automate.appliquerTransition(dynamic_cast<const EtatFdF&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
+   etats[rang%nbMaxEtats]->afficherEtat();
 }
 
 void Simulateur::run(unsigned int nb_steps) {
-	for (unsigned int i = 0; i < nb_steps; i++) next();
+	for (unsigned int i = 0; i < nb_steps; i++)
+      next();
 }
 
 const Etat& Simulateur::dernier() const {
@@ -69,6 +83,7 @@ const Etat& Simulateur::dernier() const {
 }
 
 Simulateur::~Simulateur() {
-	for (unsigned int i = 0; i < nbMaxEtats; i++) delete etats[i];
+	for (unsigned int i = 0; i < nbMaxEtats; i++)
+      delete etats[i];
 	delete[] etats;
 }
