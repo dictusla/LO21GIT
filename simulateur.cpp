@@ -16,7 +16,7 @@ Simulateur::Simulateur(const Automate& a, unsigned int buffer):
 Simulateur::Simulateur(const Automate& a, const Etat& dep, unsigned int buffer):
     automate(a), etats(nullptr), depart(&dep), nbMaxEtats(buffer),rang(0)
 {
-	etats = new Etat*[nbMaxEtats]; //plante la quand ca plante
+	etats = new Etat*[nbMaxEtats];
 	if (!etats)
       throw AutomateException("bad alloc of tab etats");
 
@@ -29,6 +29,7 @@ Simulateur::Simulateur(const Automate& a, const Etat& dep, unsigned int buffer):
       etats[0]= new Etat2D(dynamic_cast<const Etat2D&>(dep));
    else if (typeid(dep)==typeid(EtatFdF))
       etats[0]= new EtatFdF(dynamic_cast<const EtatFdF&>(dep));
+   else throw AutomateException("etat de depart incorrect");
 }
 
 void Simulateur::build(unsigned int cellule)
@@ -38,12 +39,14 @@ void Simulateur::build(unsigned int cellule)
 
 	if (etats[cellule] == nullptr)
    {
-      if (typeid(depart)==typeid(Etat1D))
+      if (typeid(*depart)==typeid(Etat1D))
          etats[cellule] = new Etat1D(1,depart->getX());
-      else if (typeid(depart)==typeid(Etat2D))
+      else if (typeid(*depart)==typeid(Etat2D))
          etats[cellule] = new Etat2D(2,depart->getX(),dynamic_cast<const Etat2D*>(depart) ->getY());
-      else if (typeid(depart)==typeid(EtatFdF))
+      else if (typeid(*depart)==typeid(EtatFdF))
          etats[cellule] = new EtatFdF(2,depart->getX(),dynamic_cast<const EtatFdF*>(depart) ->getY());
+      else
+         throw AutomateException("etat de depart incorrect");
    }
 }
 
@@ -54,7 +57,16 @@ void Simulateur::setEtatDepart(const Etat& e) {
 
 void Simulateur::reset() {
 	if (depart==nullptr) throw AutomateException("etat depart indefini");
-	build(0); *etats[0] = *depart;
+	build(0);
+	 if (typeid(*depart)==typeid(Etat1D))
+      dynamic_cast<Etat1D&>(*etats[0]) = dynamic_cast<const Etat1D&>(*depart) ;
+   else if (typeid(*depart)==typeid(Etat2D))
+      dynamic_cast<Etat2D&>(*etats[0]) = dynamic_cast<const Etat2D&>(*depart) ;
+   else if (typeid(*depart)==typeid(EtatFdF))
+      dynamic_cast<EtatFdF&>(*etats[0]) = dynamic_cast<const EtatFdF&>(*depart) ;
+   else
+      throw AutomateException("etat de depart incorrect");
+
 	rang = 0;
 }
 
@@ -64,13 +76,15 @@ void Simulateur::next() {
    rang++;
 	build(rang%nbMaxEtats);
 
-	if (typeid(etats[rang-1 % nbMaxEtats])==typeid(Etat1D))
+	if (typeid(*etats[(rang-1) % nbMaxEtats])==typeid(Etat1D))
       automate.appliquerTransition(dynamic_cast<const Etat1D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
-   else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(Etat2D))
+   else if (typeid(*etats[(rang-1) % nbMaxEtats])==typeid(Etat2D))
       automate.appliquerTransition(dynamic_cast<const Etat2D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
-   else if (typeid(etats[rang-1 % nbMaxEtats])==typeid(EtatFdF))
+   else if (typeid(*etats[(rang-1) % nbMaxEtats])==typeid(EtatFdF))
       automate.appliquerTransition(dynamic_cast<const EtatFdF&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
-   etats[rang%nbMaxEtats]->afficherEtat();
+   else
+      throw AutomateException("etats non valides");
+   //etats[rang%nbMaxEtats]->afficherEtat();
 }
 
 void Simulateur::run(unsigned int nb_steps) {
