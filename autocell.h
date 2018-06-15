@@ -13,7 +13,7 @@
 
 #define TAILLE_CELLULE 49
 
-const QString couleurs[] = {"white", "black", "red", "darkGreen", "darkBlue", "yellow"};
+const QString couleurs[] = {"white",  "darkGreen", "black", "red", "darkBlue", "yellow"};
 #define NB_COULEURS 6
 
 class AutoCell : public QWidget{
@@ -24,16 +24,19 @@ class AutoCell : public QWidget{
 protected:
     Etat* initial;      //pour completer l'affichage dans les constructeurs des classe heritees
     unsigned int etatsPossibles;
+    unsigned int etatsPossiblesGeneration;
     unsigned int dimX;
     unsigned int dimY;      //nombre de lignes en 2D et d'etats a afficher en 1D
     unsigned int nbGenerators;
     const EtatGenerator** generators;
     QVBoxLayout* specifique;        //layout pour afficher au DESSUS du bouton simuler
-    QVBoxLayout* specifique2;       //layout pour afficher au DESSOUS du bouton simuler
+    QHBoxLayout* bouttons;
+    QVBoxLayout* grille;       //layout pour afficher au DESSOUS du bouton simuler
     QComboBox* generateurs;
     QPushButton* generer;
+    QTableWidget* etats;
 public:
-    explicit AutoCell(unsigned int x, unsigned int y, unsigned int e, QWidget* parent = nullptr);
+    explicit AutoCell(unsigned int x, unsigned int y, unsigned int e, unsigned int eg = 2, QWidget* parent = nullptr);
     virtual void actualize(const Etat* e) = 0;
     const Etat* getInitial() {return initial;}
     virtual void setInitial(const Etat* e) = 0;
@@ -41,6 +44,7 @@ public:
 signals:
     //void giveEtatInitial(const Etat* e);
     void simuler();
+    void reset();
 private slots:
     void synchronizeNumToNumBit(int i);
     void synchronizeNumBitToNum(const QString& s);
@@ -54,24 +58,23 @@ public slots:
 class AutoCell1D : public AutoCell{
     Q_OBJECT
     unsigned int r;
-    //QSpinBox* num; // numéro                            //tout ça vient
-    //QLineEdit* numeroBit[8]; // un QLineEdit par bit    //du TD, je sais
-    //QLabel* numl;                                       //pas ce qui
-    //QLabel* numeroBitl[8];                              //reste outile
-    //QVBoxLayout* numc;                                  //
-    //QVBoxLayout* bitc[8];                               //
-    //QHBoxLayout* numeroc;                               //
-    //QIntValidator* zeroOneValidator;                    //
-    QTableWidget* depart;                               //
-    //QVBoxLayout* couche;                                //
-    QTableWidget* etats;                                //
-    //QPushButton* quit;                                  //
-    //QTabWidget* onglets;                                //
-    //QWidget* page1;                                     //
-    //QWidget* page2;                                     //
-    //QVBoxLayout* main;                                  //
+    //QSpinBox* num; // numéro
+    //QLineEdit* numeroBit[8]; // un QLineEdit par bit
+    //QLabel* numl;
+    //QLabel* numeroBitl[8];
+    //QVBoxLayout* numc;
+    //QVBoxLayout* bitc[8];
+    //QHBoxLayout* numeroc;
+    //QIntValidator* zeroOneValidator;
+    QTableWidget* depart;
+    //QVBoxLayout* couche;
+    //QPushButton* quit;
+    //QTabWidget* onglets;
+    //QWidget* page1;
+    //QWidget* page2;
+    //QVBoxLayout* main;
 public:
-    AutoCell1D(unsigned int e, unsigned int dim, unsigned int l);
+    AutoCell1D(unsigned int e, unsigned int dim, unsigned int l, unsigned int eg = 2);
     void actualize(const Etat* e);
     void setInitial(const Etat* e);
     void addGenerator(const EtatGenerator* g);
@@ -82,13 +85,15 @@ private slots:
 
 class AutoCell2D : public AutoCell{
     Q_OBJECT
+
 public:
-    AutoCell2D(unsigned int lines, unsigned int columns, unsigned int e);
-    void actualize(const Etat* e) {}
-    void setInitial(const Etat* e) {}
+    AutoCell2D(unsigned int lines, unsigned int columns, unsigned int e, unsigned int eg = 2);
+    void actualize(const Etat* e) ;
+    void setInitial(const Etat* e) ;
     void addGenerator(const EtatGenerator* g);
+    void synchDimension(unsigned int X, unsigned int Y);
 private slots:
-    void cellActivation(const QModelIndex& index){}
+    void cellActivation(const QModelIndex& index);
     void genererEtat();
 };
 

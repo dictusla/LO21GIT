@@ -65,7 +65,6 @@ protected:
     QLabel* dimension;
     QSpinBox* dim2;
     QLabel* dimension2;
-    //virtual Etat* getCopy(const Etat* e) = 0;
     const Etat* getNext();
     const Etat* getPrev();
     virtual void addEtatGenerators() = 0;
@@ -81,8 +80,7 @@ public:
 signals:
     //void inEtatInitial();
 private slots:
-    virtual void synchDimension(int d) = 0;
-    virtual void synchDimension2(int d) = 0;
+    virtual void synchDimension(int) = 0;
     //void setEtatInitial(const Etat* e);
     virtual void simuler() = 0;
 };
@@ -121,8 +119,7 @@ public:
     //const std::string& getNumeroBit() const { return numeroBit; }
     Etat* appliquerTransition(const Etat* dep) const;
 private slots:
-    void synchDimension(int d);
-    void synchDimension2(int d);
+    void synchDimension(int);
     void synchRegles(unsigned int i, unsigned int j, unsigned int k);
     void simuler();
 };
@@ -136,8 +133,8 @@ private:
     //Etat* getCopy(const Etat* e);
 protected:
     Automate2D (unsigned int minNd, unsigned int maxNd);
-    ~Automate2D () {}
-    void addEtatGenerators(){}
+    ~Automate2D () ;
+    void addEtatGenerators();
 public:
     //void print (std::ostream& os) const;
     //public:
@@ -145,9 +142,9 @@ public:
     unsigned int getMinToNotDie () const { return minToNotDie; }
     unsigned int getMaxToNotDie () const { return maxToNotDie; }
 private slots:
-    void synchDimension(int colonnes);
-    void synchDimension2(int lignes){}
-    void simuler() {}
+    void synchDimension(int);
+    void simuler();
+    void reset();
 };
 /*
 class Automate2D :  public Automate
@@ -173,12 +170,18 @@ class Automate2D :  public Automate
 };
 */
 
-class AutomateFdF : public Automate
-{
+class AutomateFdF : public Automate{
+    Q_OBJECT
+protected:
+    void addEtatGenerators();
 public:
-    AutomateFdF() {}
+    AutomateFdF();
     ~AutomateFdF () {}
-    void appliquerTransition (const Etat& dep, Etat& dest) const;
+    Etat* appliquerTransition (const Etat* dep) const;
+private slots:
+    void synchDimension(int);
+    void simuler();
+    void reset();
 };
 
 class AutomateManager

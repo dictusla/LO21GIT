@@ -96,9 +96,7 @@ Automate::Automate() : nb(0), maxSize(MAX_BUFFER_SIZE){
 
     etatInitial = nullptr;
     connect(dim,SIGNAL(valueChanged(int)),this,SLOT(synchDimension(int)));
-    connect(dim2,SIGNAL(valueChanged(int)),this,SLOT(synchDimension2(int)));
-    //connect(this,SIGNAL(inEtatInitial()),grille,SLOT(EtatInitial()));
-    //connect(grille,SIGNAL(giveEtatInitial(const Etat*)),this,SLOT(setEtatInitial(const Etat*)));
+    connect(dim2,SIGNAL(valueChanged(int)),this,SLOT(synchDimension(int)));
     grille = nullptr;
 }
 
@@ -109,7 +107,7 @@ const Etat* Automate::getNext(){
     if (nb == maxSize) this->buffer.pop_back();
     else nb +=1;
     //Etat* nouveau = getCopy(etatInitial);
-    Etat* nouveau= appliquerTransition(pt);
+    Etat* nouveau = appliquerTransition(pt);
     buffer.push_front(nouveau);
     return buffer.front();
 }
@@ -182,7 +180,7 @@ Automate1D::Automate1D(unsigned int e): Automate(), etatsPossibles(e) {
     configs->addLayout(lay);
     //Cellules* cel = new Cellules(1,0,1,3);
     //configs->addWidget(&inRegles[1][0][1]);
-    grille = new AutoCell1D(etatsPossibles, dim->value(),dim2->value());
+    grille = new AutoCell1D(etatsPossibles, dim->value(),dim2->value(), etatsPossibles);
     setInitial();
     addEtatGenerators();
     grille->setFixedWidth(dim->value()*TAILLE_CELLULE + 20);
@@ -200,10 +198,11 @@ Automate1D::~Automate1D(){
         delete[] regles[i];
     }
     delete[] regles;
+    RandGenerator1D::deleteInstance();
 }
 
 void Automate1D::addEtatGenerators(){
-    RandGenerator1D* pt= new RandGenerator1D;
+    RandGenerator1D* pt= RandGenerator1D::getInstance();
     grille->addGenerator(pt);
 }
 
@@ -244,31 +243,17 @@ void Automate1D::appliquerTransition(const Etat& dep, Etat& dest) const
 		a.setCellule(i, numeroBit[7-conf]-'0');
 */
 
-void Automate1D::synchDimension(int d){
-    clearBuffer();
-    Etat1D* nouveau = new Etat1D(0,d);
-    const Etat1D* pt = dynamic_cast<const Etat1D*>(etatInitial);
-    nouveau->copyEtat(pt);
-    delete grille;
-    grille = new AutoCell1D(etatsPossibles, d, dim2->value());
-    grille->setInitial(nouveau);
-    setInitial();
-    addEtatGenerators();
-    grille->setFixedWidth(d*TAILLE_CELLULE + 20);
-    principal->addWidget(grille);
-    connect(grille,SIGNAL(simuler()),this,SLOT(simuler()));
-}
-
-void Automate1D::synchDimension2(int d){
+void Automate1D::synchDimension(int){
     clearBuffer();
     Etat1D* nouveau = new Etat1D(0,dim->value());
     const Etat1D* pt = dynamic_cast<const Etat1D*>(etatInitial);
     nouveau->copyEtat(pt);
     delete grille;
-    grille = new AutoCell1D(etatsPossibles, dim->value(), d);
+    grille = new AutoCell1D(etatsPossibles, dim->value(), dim2->value(), etatsPossibles);
     grille->setInitial(nouveau);
     setInitial();
     addEtatGenerators();
+    grille->setFixedWidth(dim->value()*TAILLE_CELLULE + 20);
     principal->addWidget(grille);
     connect(grille,SIGNAL(simuler()),this,SLOT(simuler()));
     simuler();
@@ -292,40 +277,63 @@ Automate2D::Automate2D (unsigned int minNd, unsigned int maxNd) : minToNotDie (m
     dimension2->setText("Lignes : ");
     dimension->setText("Colonnes : ");
     grille = new AutoCell2D(DIMENSION_MIN,DIMENSION_MIN,2);
+    setInitial();
+    addEtatGenerators();
     principal->addWidget(grille);
+    connect(grille,SIGNAL(simuler()),this,SLOT(simuler()));
+    connect(grille,SIGNAL(reset()),this,SLOT(reset()));
 }
 
-/*Etat* Automate2D::getCopy(const Etat* e){
-    return new Etat2D(*(dynamic_cast<const Etat2D*>(e)));
-}*/
+Automate2D::~Automate2D(){
+    RandGenerator2D::deleteInstance();
+}
+
+void Automate2D::addEtatGenerators(){
+    RandGenerator2D* pt= RandGenerator2D::getInstance();
+    grille->addGenerator(pt);
+}
 
 Etat* Automate2D::appliquerTransition (const Etat* dep) const {
-    Etat2D* dest = new Etat2D(0, dep->getX(), dynamic_cast<const Etat2D*>(dep)->getY());
+    const Etat2D* pt = dynamic_cast<const Etat2D*>(dep);
+    Etat2D* dest = new Etat2D(0, dep->getX(), pt->getY());
    //if (dep.getX() != dest.getX() || dynamic_cast<const Etat2D&>(dep).getY()!=dynamic_cast<Etat2D&>(dest).getY()) dest = dep;
    //std::cout<<"dest dep ok, x= "<<dep.getX()<<" y= "<<dep.getY()<<std::endl;
+    unsigned int left, up, right, down;
     for (unsigned int i = 0; i < dep->getX(); i++)
     {
-        for(unsigned int j = 0; j<dynamic_cast<const Etat2D*>(dep)->getY(); j++)
+        for(unsigned int j = 0; j<pt->getY(); j++)
         {
             unsigned int nbVvivant=0;
             //std::cout<<"avant boucles de get cellule ok"<<std::endl;
+            if (i == 0) left = pt->getX() - 1;
+            else left = i - 1;
+            if (j == 0) up = pt->getY() - 1;
+            else up = j - 1;
+            if (i == (pt->getX() - 1)) right = 0;
+            else right = i + 1;
+            if (j == (pt->getY() - 1)) down = 0;
+            else down = j + 1;
+            /*
             for(unsigned int x=i-1; x<=i+1; ++x)
             {
                 for(unsigned int y=j-1; y<=j+1; ++y)
                 {
-                    std::cout<<"x="<<x<<" y="<<y<<std::endl;
+                    //std::cout<<"x="<<x<<" y="<<y<<std::endl;
                     //std::cout<<"appel get cellule avec i="<<i<<"et j="<<j<<std::endl;
                     if ((x!=i || y!=j) && dynamic_cast<const Etat2D*>(dep)->getCellule(x,y) )
                     {
                         nbVvivant++;}
                   }
-            }
+            }*/
+            nbVvivant = pt->getCellule(left,up) + pt->getCellule(i,up) + pt->getCellule(right,up);
+            nbVvivant += pt->getCellule(left,j) + pt->getCellule(right,j);
+            nbVvivant += pt->getCellule(left,down) + pt->getCellule(i,down) + pt->getCellule(right,down);
             if (nbVvivant<minToNotDie || nbVvivant>maxToNotDie)
             { //std::cout<<"appel set cellule avec i="<<i<<"et j="<<j<<std::endl;
-                dest->setCellule(i,j, false);}
+                dest->setCellule(i, j, 0);}
             else
-                { //std::cout<<"appel set cellule avec i="<<i<<"et j="<<j<<std::endl;
-                    dest->setCellule(i, j, true);}
+            { //std::cout<<"appel set cellule avec i="<<i<<"et j="<<j<<std::endl;
+                dest->setCellule(i, j, 1);}
         }
     }
     return dest;
@@ -364,37 +372,92 @@ void Automate2D::appliquerTransition (const Etat& dep, Etat& dest) const
 	}
 }*/
 
-void Automate2D::synchDimension(int colonnes){
-
+void Automate2D::synchDimension(int){
+    clearBuffer();
+    dynamic_cast<AutoCell2D*>(grille)->synchDimension(dim->value(),dim2->value());
+    setInitial();
 }
 
-void AutomateFdF::appliquerTransition (const Etat& dep, Etat& dest) const
+void Automate2D::simuler(){
+    const Etat* pt = getNext();
+    grille->setInitial(pt);
+    grille->actualize(pt);
+}
+
+void Automate2D::reset(){
+    clearBuffer();
+    setInitial();
+    grille->actualize(etatInitial);
+}
+
+AutomateFdF::AutomateFdF(){
+    dimension2->setText("Lignes : ");
+    dimension->setText("Colonnes : ");
+    grille = new AutoCell2D(DIMENSION_MIN,DIMENSION_MIN,4);
+    setInitial();
+    addEtatGenerators();
+    principal->addWidget(grille);
+    connect(grille,SIGNAL(simuler()),this,SLOT(simuler()));
+    connect(grille,SIGNAL(reset()),this,SLOT(reset()));
+}
+
+void AutomateFdF::addEtatGenerators(){
+    RandGenerator2D* pt= RandGenerator2D::getInstance();
+    grille->addGenerator(pt);
+}
+
+void AutomateFdF::synchDimension(int){
+    clearBuffer();
+    dynamic_cast<AutoCell2D*>(grille)->synchDimension(dim->value(),dim2->value());
+    setInitial();
+}
+
+void AutomateFdF::simuler(){
+    const Etat* pt = getNext();
+    grille->setInitial(pt);
+    grille->actualize(pt);
+}
+
+void AutomateFdF::reset(){
+    clearBuffer();
+    setInitial();
+    grille->actualize(etatInitial);
+}
+
+Etat* AutomateFdF::appliquerTransition (const Etat* dep) const
 {
-   const EtatFdF& d=dynamic_cast<const EtatFdF&>(dep);
-   EtatFdF& a=dynamic_cast<EtatFdF&>(dest);
+   const Etat2D* pt=dynamic_cast<const Etat2D*>(dep);
+   Etat2D* dest = new Etat2D(0, pt->getX(), pt->getY());
+   unsigned int left, up, right, down;
 
-   if (d.getX() != a.getX() || d.getY()!=a.getY())
-      a=d;
-
-   for (int i = 0; i < dep.getX(); i++)
+   for (unsigned int i = 0; i < pt->getX(); i++)
    {
-      for(int j=0; j < d.getY(); j++)
+      for(unsigned int j=0; j < pt->getY(); j++)
       {
-         if (d.getCellule(i,j)==0)
-            a.setCellule(i,j,0);
-         else if (d.getCellule(i,j)==2)
-            a.setCellule(i,j,3);
-         else if (d.getCellule(i,j)==3)
-            a.setCellule(i,j,3);
+         if (pt->getCellule(i,j)==0)
+            dest->setCellule(i,j,0);
+         else if (pt->getCellule(i,j)==3)
+            dest->setCellule(i,j,2);
+         else if (pt->getCellule(i,j)==2)
+            dest->setCellule(i,j,2);
          else
          {
-            if ( d.getCellule(i,j-1)==2 || d.getCellule(i,j+1)==2 || d.getCellule(i-1,j)==2 || d.getCellule(i+1,j)==2 )
-               a.setCellule(i,j,2);
+            if (i == 0) left = pt->getX() - 1;
+            else left = i - 1;
+            if (j == 0) up = pt->getY() - 1;
+            else up = j - 1;
+            if (i == (pt->getX() - 1)) right = 0;
+            else right = i + 1;
+            if (j == (pt->getY() - 1)) down = 0;
+            else down = j + 1;
+            if ( pt->getCellule(i,up)==3 || pt->getCellule(left,j)==3 || pt->getCellule(right,j)==3 || pt->getCellule(i,down)==3 )
+               dest->setCellule(i,j,3);
             else
-               a.setCellule(i,j,1);
+               dest->setCellule(i,j,1);
          }
       }
     }
+   return dest;
 }
 
 /*

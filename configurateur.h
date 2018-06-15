@@ -62,10 +62,8 @@ class Config2D : public Configurateur{
     Q_OBJECT
     friend class Interface;
     static QString nom;
-    QLabel* dimension2;
     QLabel* live;
     QLabel* die;
-    QSpinBox* dim2;
     QSpinBox* Min;
     QSpinBox* Max;
     Config2D(const Config2D&) {}
@@ -74,12 +72,25 @@ class Config2D : public Configurateur{
 protected:
 public:
     Config2D();
-    ~Config2D();
+    ~Config2D() {}
     QString getNom();
 private slots:
     void loadAutomate();
     void synchMax(int);
     void synchMin(int);
+};
+
+class ConfigFdF : public Configurateur{
+    Q_OBJECT
+    friend class Interface;
+    static QString nom;
+    void setAutomate();
+public:
+    ConfigFdF();
+    ~ConfigFdF() {}
+    QString getNom();
+private slots:
+    void loadAutomate(){}
 };
 
 class Interface : public QMainWindow{

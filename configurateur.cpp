@@ -4,6 +4,7 @@
 QString Configurateur::nom = " - ";
 QString Config1D::nom = "Automate1D";
 QString Config2D::nom = "Jeu de la vie";
+QString ConfigFdF::nom = "Feu de Foret";
 
 /*======================================*/
 
@@ -39,7 +40,6 @@ Config1D::~Config1D() {}
 QString Config1D::getNom(){return Config1D::nom;}
 
 void Config1D::setAutomate(){
-    std::cout<<"config1D"<<std::endl;
     automat = new Automate1D(col->value());
 }
 
@@ -47,19 +47,14 @@ void Config1D::loadAutomate(){
 }
 
 Config2D::Config2D() {
-    //dimension2 = new QLabel("Lignes");
     live = new QLabel("Minimum de voisins:");
     die = new QLabel("Maximum de voisins:");
-    //dim2 = new QSpinBox;
     Min = new QSpinBox;
     Max = new QSpinBox;
 
-    //dimension->setText("Colonnes");
-    //dim2->setRange(DIMENSION_MIN,DIMENSION_MAX);
     Min->setRange(0,8);
     Max->setRange(0,8);
 
-    //specifique->addRow(dimension2,dim2);
     specifique->addWidget(live);
     specifique->addWidget(Min);
     specifique->addWidget(die);
@@ -69,8 +64,6 @@ Config2D::Config2D() {
     connect(Max,SIGNAL(valueChanged(int)),this,SLOT(synchMin(int)));
 }
 
-Config2D::~Config2D() {}
-
 QString Config2D::getNom(){return Config2D::nom;}
 
 void Config2D::synchMax(int a) {if(a>Max->value()) Max->setValue(a);}
@@ -78,11 +71,18 @@ void Config2D::synchMax(int a) {if(a>Max->value()) Max->setValue(a);}
 void Config2D::synchMin(int a) {if(a<Min->value()) Min->setValue(a);}
 
 void Config2D::setAutomate(){
-    std::cout<<"config2D"<<std::endl;
     automat = new Automate2D(Min->value(), Max->value());
 }
 
 void Config2D::loadAutomate(){}
+
+ConfigFdF::ConfigFdF() : Configurateur() {}
+
+void ConfigFdF::setAutomate(){
+    automat = new AutomateFdF();
+}
+
+QString ConfigFdF::getNom(){return ConfigFdF::nom;}
 
 Interface::Interface() : nbTypes(1){
     bar = new QToolBar;

@@ -1,22 +1,46 @@
 #include "autocell.h"
 
-AutoCell::AutoCell(unsigned int x, unsigned int y, unsigned int e, QWidget *parent) :
-    dimX(x), dimY(y), etatsPossibles(e), QWidget(parent), nbGenerators(0) {
+AutoCell::AutoCell(unsigned int x, unsigned int y, unsigned int e, unsigned int eg, QWidget *parent) :
+    dimX(x), dimY(y), etatsPossibles(e), etatsPossiblesGeneration(eg), QWidget(parent), nbGenerators(0) {
     principal = new QVBoxLayout;
     commun = new QHBoxLayout;
     specifique = new QVBoxLayout;
-    specifique2 = new QVBoxLayout;
+    bouttons = new QHBoxLayout;
+    grille = new QVBoxLayout;
     generateurs =  new QComboBox;
     generer =  new QPushButton("Générer");
     simulation = new QPushButton("Simulation !", this);
 
     commun->addWidget(generateurs);
     commun->addWidget(generer);
-    specifique2->addWidget(simulation);
+    bouttons->addWidget(simulation);
     principal->addLayout(commun);
     principal->addLayout(specifique);
-    principal->addLayout(specifique2);
+    principal->addLayout(bouttons);
+    principal->addLayout(grille);
     setLayout(principal);
+
+    setFixedWidth(dimX*TAILLE_CELLULE+20);
+    etats = new QTableWidget(dimY, dimX, this);
+    etats->setFixedSize(dimX*TAILLE_CELLULE, dimY*TAILLE_CELLULE);
+    etats->horizontalHeader()->setVisible(false);
+    etats->verticalHeader()->setVisible(false);
+    etats->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    etats->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); // désactive la modification par l'utilisateur
+    // on va créer les items, on utilise 2 boucles car on parcourt un tableau 2 dimensions
+    for (unsigned int i = 0; i < dimX; i++){
+        etats->setColumnWidth(i, TAILLE_CELLULE);
+    }
+    for(unsigned int line = 0; line < dimY; ++line) {
+        // fixe les dimensions des lignes et des colonnes
+        etats->setRowHeight(line, TAILLE_CELLULE);
+        for(unsigned int column = 0; column < dimX; ++column) {
+            etats->setItem(line, column, new QTableWidgetItem(""));
+            etats->item(line, column)->setBackgroundColor("white");
+            etats->item(line, column)->setTextColor("white");
+        }
+    }
+    grille->addWidget(etats);
 
     generators = nullptr;
     connect(simulation, SIGNAL(clicked()), this, SLOT(launchSimulation()));
@@ -93,7 +117,7 @@ void AutoCell::addGenerator(const EtatGenerator* g){
     delete[] oldTab;
 }
 
-AutoCell1D::AutoCell1D(unsigned int e, unsigned int dim, unsigned int l) : AutoCell(dim, l, e), r(0) {
+AutoCell1D::AutoCell1D(unsigned int e, unsigned int dim, unsigned int l, unsigned int eg) : AutoCell(dim, l, e, eg), r(0) {
     initial = new Etat1D(0,dimX);
     /*num = new QSpinBox(this);
     num->setRange(0, 255);
@@ -148,27 +172,7 @@ AutoCell1D::AutoCell1D(unsigned int e, unsigned int dim, unsigned int l) : AutoC
     connect(depart, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(cellActivation(QModelIndex)));
     specifique->addWidget(depart);
     // Question 3
-    etats = new QTableWidget(dimY, dimX, this);
-    etats->setFixedSize(dimX*TAILLE_CELLULE, dimY*TAILLE_CELLULE);
-    etats->horizontalHeader()->setVisible(false);
-    etats->verticalHeader()->setVisible(false);
-    etats->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    etats->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    etats->setEditTriggers(QAbstractItemView::NoEditTriggers); // désactive la modification par l'utilisateur
-    // on va créer les items, on utilise 2 boucles car on parcourt un tableau 2 dimensions
-    for (unsigned int i = 0; i < dimX; i++){
-        etats->setColumnWidth(i, TAILLE_CELLULE);
-    }
-    for(unsigned int line = 0; line < dimY; ++line) {
-        // fixe les dimensions des lignes et des colonnes
-        etats->setRowHeight(line, TAILLE_CELLULE);
-        for(unsigned int column = 0; column < dimX; ++column) {
-            etats->setItem(line, column, new QTableWidgetItem(""));
-            etats->item(line, column)->setBackgroundColor("white");
-            etats->item(line, column)->setTextColor("white");
-        }
-    }
-    specifique2->addWidget(etats);
+    etats->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     /*page1= new QWidget;
     page2= new QWidget;
@@ -199,9 +203,11 @@ void AutoCell1D::actualize(const Etat* e){
 }
 
 void AutoCell1D::setInitial(const Etat* e){
-    if (e->getX() != dimX) throw EtatException("wrong size");
+    if (e->getX() != dimX)
+        throw EtatException("wrong size");
     const Etat1D* pt =dynamic_cast<const Etat1D*>(e);
-    if (pt == nullptr) throw EtatException("wrong type");
+    if (pt == nullptr)
+        throw EtatException("wrong type");
     for (unsigned int i = 0; i < dimX; i++){if (pt->getCellule(i)>=etatsPossibles) throw EtatException("Color(s) out of range"); }
     for (unsigned int i = 0; i < dimX; i++){
         depart->item(0,i)->setBackground(QColor(couleurs[pt->getCellule(i)]));
@@ -212,7 +218,8 @@ void AutoCell1D::setInitial(const Etat* e){
 
 void AutoCell1D::addGenerator(const EtatGenerator* g){
     const EtatGenerator1D* pt= dynamic_cast<const EtatGenerator1D*>(g);
-    if (pt == nullptr) throw EtatException("wrong EtatGenerator type");
+    if (pt == nullptr)
+        throw EtatException("wrong EtatGenerator type");
     AutoCell::addGenerator(g);
 }
 
@@ -239,22 +246,102 @@ void AutoCell1D::cellActivation(const QModelIndex& index) {
 
 void AutoCell1D::genererEtat(){
     unsigned int index = generateurs->currentIndex();
-    const Etat1D* pt =(dynamic_cast<const EtatGenerator1D*>(generators[index]))->generateEtat(dimX, etatsPossibles);
+    const Etat1D* pt =(dynamic_cast<const EtatGenerator1D*>(generators[index]))->generateEtat(dimX, etatsPossiblesGeneration);
     setInitial(pt);
+    delete pt;
 }
 
-AutoCell2D::AutoCell2D(unsigned int lines, unsigned int columns, unsigned int e) : AutoCell(columns, lines, e){
+AutoCell2D::AutoCell2D(unsigned int lines, unsigned int columns, unsigned int e, unsigned int eg) : AutoCell(columns, lines, e, eg){
+    initial = new Etat2D(0, dimX, dimY);
+    connect(etats, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(cellActivation(QModelIndex)));
     connect(generer,SIGNAL(clicked()),this,SLOT(genererEtat()));
+}
+
+void AutoCell2D::actualize(const Etat* e){
+    unsigned int currentColor;
+    for (unsigned int i = 0; i < dimX; i++){
+        for (unsigned int j = 0; j < dimY; j++){
+            currentColor = (dynamic_cast<const Etat2D*>(e))->getCellule(i,j);
+            etats->item(j,i)->setBackground(QColor(couleurs[currentColor]));
+        }
+    }
+}
+
+void AutoCell2D::setInitial(const Etat* e){
+    const Etat2D* pt =dynamic_cast<const Etat2D*>(e);
+    if (pt == nullptr)
+        throw EtatException("wrong type");
+    if (pt->getX() != dimX || pt->getY() != dimY)
+        throw EtatException("wrong size");
+    for (unsigned int i = 0; i < dimX; i++){
+        for (unsigned int j = 0; j < dimY; j++){
+            if (pt->getCellule(i,j)>=etatsPossibles)
+                throw EtatException("Color(s) out of range");
+        }
+    }
+    for (unsigned int i = 0; i < dimX; i++){
+        for (unsigned int j = 0; j < dimY; j++){
+        etats->item(j,i)->setBackground(QColor(couleurs[pt->getCellule(i,j)]));
+        dynamic_cast<Etat2D*>(initial)->setCellule(i,j,pt->getCellule(i,j));
+        }
+    }
+    *initial = *pt;
 }
 
 void AutoCell2D::addGenerator(const EtatGenerator* g){
     const EtatGenerator2D* pt= dynamic_cast<const EtatGenerator2D*>(g);
-    if (pt == nullptr) throw EtatException("wrong EtatGenerator type");
+    if (pt == nullptr)
+        throw EtatException("wrong EtatGenerator type");
     AutoCell::addGenerator(g);
+}
+
+void AutoCell2D::synchDimension(unsigned int X, unsigned int Y){
+    dimX = X;
+    dimY = Y;
+    Etat2D* temp = dynamic_cast<Etat2D*>(initial);
+    initial = new Etat2D(0,dimX,dimY);
+    (dynamic_cast<Etat2D*>(initial))->copyEtat(temp);
+    delete temp;
+    delete etats;
+    etats = new QTableWidget(dimY, dimX, this);
+    setFixedWidth(dimX*TAILLE_CELLULE+20);
+    etats->setFixedSize(dimX*TAILLE_CELLULE, dimY*TAILLE_CELLULE);
+    etats->horizontalHeader()->setVisible(false);
+    etats->verticalHeader()->setVisible(false);
+    etats->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    etats->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    for (unsigned int i = 0; i < dimX; i++){
+        etats->setColumnWidth(i, TAILLE_CELLULE);
+    }
+    for(unsigned int line = 0; line < dimY; ++line) {
+        etats->setRowHeight(line, TAILLE_CELLULE);
+        for(unsigned int column = 0; column < dimX; ++column) {
+            etats->setItem(line, column, new QTableWidgetItem(""));
+            etats->item(line, column)->setBackgroundColor("white");
+            etats->item(line, column)->setTextColor("white");
+        }
+    }
+    grille->addWidget(etats);
+    actualize(initial);
+}
+
+void AutoCell2D::cellActivation(const QModelIndex& index){
+    unsigned int prev = (dynamic_cast<Etat2D*>(initial))->getCellule(index.column(),index.row());
+    if (prev == etatsPossibles-1){
+        etats->item(index.column(), index.row())->setBackground(QColor(couleurs[0]));
+        (dynamic_cast<Etat2D*>(initial))->setCellule(index.column(),index.row(),0);
+    }
+    else {
+        etats->item(index.column(), index.row())->setBackground(QColor(couleurs[prev+1]));
+        (dynamic_cast<Etat2D*>(initial))->setCellule(index.column(),index.row(),prev+1);
+    }
+    emit reset();
 }
 
 void AutoCell2D::genererEtat(){
     unsigned int index = generateurs->currentIndex();
-    const Etat2D* pt =(dynamic_cast<const EtatGenerator2D*>(generators[index]))->generateEtat(dimX, dimY, etatsPossibles);
+    Etat2D* pt =(dynamic_cast<const EtatGenerator2D*>(generators[index]))->generateEtat(dimX, dimY, etatsPossiblesGeneration);
     setInitial(pt);
+    delete pt;
+    emit reset();
 }
