@@ -63,6 +63,19 @@ void Etat1D::setCellule(unsigned int i, unsigned int val) {
        throw EtatException("Cellule inexistante1D");
    valeur[i]=val;
 }
+/*
+bool Etat1D::getCellule(int i)const
+{
+   if (i>=getX()) throw AutomateException("Cellule inexistante Etat1D");
+   return valeur[i];
+}
+
+void Etat1D::setCellule(int i, bool val)
+{
+   if (i>=getX()) throw AutomateException("Cellule inexistante1D");
+   valeur[i]=val;
+}
+*/
 
 void Etat1D::afficherEtat() const {
    std::cout<<"Etat1D :"<<std::endl;

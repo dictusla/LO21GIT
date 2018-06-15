@@ -69,6 +69,7 @@ public:
    ~EtatFdF();
    EtatFdF(const EtatFdF& e);
    EtatFdF& operator=(const EtatFdF& e);
+
 };
 
 #endif // ETATS_H_INCLUDED

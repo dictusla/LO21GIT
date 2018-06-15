@@ -86,6 +86,14 @@ private slots:
     //void setEtatInitial(const Etat* e);
     virtual void simuler() = 0;
 };
+/*
+class Automate {
+
+    public:
+        Automate() {}
+        virtual ~Automate (){}
+        virtual void appliquerTransition(const Etat& dep, Etat& dest) const = 0;
+};*/
 
 class Automate1D : public Automate {
     Q_OBJECT
@@ -94,9 +102,11 @@ class Automate1D : public Automate {
     const unsigned int etatsPossibles;
     unsigned int*** regles;
     Cellules*** inRegles;
-    //unsigned short int numero;
-    //std::string numeroBit;
-    //Etat* getCopy(const Etat* e);
+    /*unsigned short int numero;
+    std::string numeroBit;
+    Automate1D(unsigned short int num);
+    Automate1D(const std::string& num);
+    ~Automate1D(){}*/
 protected:
     Automate1D(unsigned int e);
     //Automate1D(unsigned short int num): numero(num),numeroBit(NumToNumBit(num)) {}
@@ -105,6 +115,7 @@ protected:
     void addEtatGenerators();
     Automate1D(const Automate1D& a);
     Automate1D& operator=(const Automate1D& a);
+	 friend class AutomateManager;
 public:
     //unsigned short int getNumero() const { return numero; }
     //const std::string& getNumeroBit() const { return numeroBit; }
@@ -138,20 +149,43 @@ private slots:
     void synchDimension2(int lignes){}
     void simuler() {}
 };
+/*
+class Automate2D :  public Automate
+{
+
+    private:
+
+        unsigned int minToNotDie;
+        unsigned int maxToNotDie;
+
+
+    public:
+        Automate2D (unsigned int minNd, unsigned int maxNd) : minToNotDie (minNd), maxToNotDie (maxNd) { if(minNd>maxNd){throw AutomateException("Minimum value superior than maximum value");}}
+        ~Automate2D () {}
+
+
+        //void print (std::ostream& os) const;
+   //public:
+        void appliquerTransition (const Etat& dep, Etat& dest) const;
+
+        unsigned int getMinToNotDie () const { return minToNotDie; }
+        unsigned int getMaxToNotDie () const { return maxToNotDie; }
+};
+*/
 
 class AutomateFdF : public Automate
 {
-   public:
-         AutomateFdF() {}
-        ~AutomateFdF () {}
-        void appliquerTransition (const Etat& dep, Etat& dest) const;
-
+public:
+    AutomateFdF() {}
+    ~AutomateFdF () {}
+    void appliquerTransition (const Etat& dep, Etat& dest) const;
 };
 
 class AutomateManager
 {
    Automate1D* automates[256];
    static AutomateManager* instance;
+
    AutomateManager();
    AutomateManager& operator= (const AutomateManager& a)=delete;
    ~AutomateManager();
