@@ -1,153 +1,206 @@
 #include "configurateur.h"
 #include <iostream>
 
-#define DIMENSION_MAX 25
-#define DIMENSION_MIN 10
+QString Configurateur::nom = " - ";
+QString Config1D::nom = "Automate1D";
+QString Config2D::nom = "Jeu de la vie";
 
-QString configurateur::nom = " - ";
-QString config1D::nom = "Automate1D";
-QString config2D::nom = "Jeu de la vie";
+/*======================================*/
 
-configurateur::configurateur() {
-    principal = new QVBoxLayout;
-    specifique = new QVBoxLayout;
-    commun = new QHBoxLayout;
-    dimension = new QLabel("Dimension");
-    dim= new QSpinBox();
+Interface* Interface::interfaceUnique = nullptr;
+
+Configurateur::Configurateur() {
+    principal = new QHBoxLayout;
+    specifique = new QHBoxLayout;
     go = new QPushButton("GO");
-    dim->setRange(DIMENSION_MIN,DIMENSION_MAX);
 
-    commun->addWidget(dimension);
-    commun->addWidget(dim);
-    principal->addLayout(commun);
     principal->addLayout(specifique);
     principal->addWidget(go);
 
     setLayout(principal);
-
-    connect(go,SIGNAL(clicked()),this,SLOT(setAutomate()));
 }
 
-configurateur::~configurateur(){
+Configurateur::~Configurateur(){
     delete automat;
 }
 
-QString configurateur::getNom() {return configurateur::nom;}
-
-void configurateur::setAutomate(){
-    automat = nullptr;
-}
-
-config1D::config1D() : configurateur() {
-    C = new QHBoxLayout;
+Config1D::Config1D() : Configurateur() {
     col = new QSpinBox();
     colors = new QLabel("Etats possibles");
 
     col->setRange(2,4);
 
-    C->addWidget(colors);
-    C->addWidget(col);
-    specifique->addLayout(C);
+    specifique->addWidget(colors);
+    specifique->addWidget(col);
 }
 
-config1D::~config1D() {}
+Config1D::~Config1D() {}
 
-QString config1D::getNom(){return config1D::nom;}
+QString Config1D::getNom(){return Config1D::nom;}
 
-void config1D::setAutomate(){
-    automat = new Automate1D(0);
+void Config1D::setAutomate(){
+    std::cout<<"config1D"<<std::endl;
+    automat = new Automate1D(col->value());
 }
 
-config2D::config2D() {
-    lay1 = new QVBoxLayout;
-    layMin = new QHBoxLayout;
-    layMax = new QHBoxLayout;
+void Config1D::loadAutomate(){
+}
+
+Config2D::Config2D() {
+    //dimension2 = new QLabel("Lignes");
     live = new QLabel("Minimum de voisins:");
     die = new QLabel("Maximum de voisins:");
+    //dim2 = new QSpinBox;
     Min = new QSpinBox;
     Max = new QSpinBox;
 
+    //dimension->setText("Colonnes");
+    //dim2->setRange(DIMENSION_MIN,DIMENSION_MAX);
     Min->setRange(0,8);
     Max->setRange(0,8);
 
-    layMin->addWidget(live);
-    layMin->addWidget(Min);
-    layMax->addWidget(die);
-    layMax->addWidget(Max);
-    lay1->addLayout(layMin);
-    lay1->addLayout(layMax);
-    specifique->addLayout(lay1);
+    //specifique->addRow(dimension2,dim2);
+    specifique->addWidget(live);
+    specifique->addWidget(Min);
+    specifique->addWidget(die);
+    specifique->addWidget(Max);
 
     connect(Min,SIGNAL(valueChanged(int)),this,SLOT(synchMax(int)));
     connect(Max,SIGNAL(valueChanged(int)),this,SLOT(synchMin(int)));
 }
 
-config2D::~config2D() {}
+Config2D::~Config2D() {}
 
-QString config2D::getNom(){return config1D::nom;}
+QString Config2D::getNom(){return Config2D::nom;}
 
-void config2D::synchMax(int a) {if(a>Max->value()) Max->setValue(a);}
+void Config2D::synchMax(int a) {if(a>Max->value()) Max->setValue(a);}
 
-void config2D::synchMin(int a) {if(a<Min->value()) Min->setValue(a);}
+void Config2D::synchMin(int a) {if(a<Min->value()) Min->setValue(a);}
 
-void config2D::setAutomate(){
+void Config2D::setAutomate(){
+    std::cout<<"config2D"<<std::endl;
     automat = new Automate2D(Min->value(), Max->value());
 }
 
+void Config2D::loadAutomate(){}
+
 Interface::Interface() : nbTypes(1){
-    Bar = new QToolBar;
-    QMdiArea* area = new QMdiArea;
+    bar = new QToolBar;
+    centralArea = new QMdiArea;
     typeAut = new QComboBox;
     configBar = new QWidget;
     QWidget* commun = new QWidget;
     configLay = new QVBoxLayout;
-    QVBoxLayout* lay1 = new QVBoxLayout;
-    choixtype = new QLabel("Choisir un Automate");
-    go = new QPushButton("GO");
+    QHBoxLayout* lay1 = new QHBoxLayout;
+    choixtype = new QLabel("Choisir un Automate : ");
+    loadAut = new QPushButton("LOAD");
 
-    Types = new configurateur*[1];
-    Types[0] = nullptr;
-    typeAut->addItem(configurateur::nom);
+    types = new Configurateur*[1];
+    sub = new QMdiSubWindow*[1];
+    types[0] = nullptr;
+    sub[0] = nullptr;
 
-    Bar->setMovable(false);
-    Bar->setFixedWidth(210);
+    typeAut->addItem(" - ");
+    //configBar->setContentsMargins(configBar->contentsMargins().left(),0,configBar->contentsMargins().right(),0);
+    bar->setMovable(false);
+    bar->setFixedHeight(70);
 
     lay1->addWidget(choixtype);
     lay1->addWidget(typeAut);
     commun->setLayout(lay1);
     configBar->setLayout(configLay);
-    Bar->addWidget(commun);
-    Bar->addWidget(configBar);
-    Bar->addSeparator();
-    this->addToolBar(Qt::LeftToolBarArea, Bar);
-    this->setCentralWidget(area);
+    bar->addWidget(commun);
+    bar->addWidget(loadAut);
+    bar->addSeparator();
+    bar->addWidget(configBar);
+
+    addToolBar(Qt::TopToolBarArea, bar);
+    setCentralWidget(centralArea);
+
+    //sub = new QMdiSubWindow;
+    //centralArea->addSubWindow(sub);
 
     connect(typeAut,SIGNAL(currentIndexChanged(int)),this,SLOT(ComboSynch(int)));
+    connect(loadAut,SIGNAL(clicked()),this,SLOT(load()));
 }
 
-void Interface::addAutoType(configurateur* pt){
-    configurateur** newTab = new configurateur*[nbTypes+1];
+Interface* Interface::getInterface(){
+    if (interfaceUnique == nullptr){
+        interfaceUnique = new Interface();
+    }
+    return interfaceUnique;
+}
+
+void Interface::libererInterface(){
+    delete interfaceUnique;
+    interfaceUnique = nullptr;
+}
+
+void Interface::addAutoType(Configurateur* pt){
+    Configurateur** newTab = new Configurateur*[nbTypes+1];
+    QMdiSubWindow** newTab2 = new QMdiSubWindow*[nbTypes+1];
     for (unsigned int i = 0; i < nbTypes; i++){
-        newTab[i] = Types[i];
+        newTab[i] = types[i];
+        newTab2[i] = sub[i];
     }
     newTab[nbTypes] = pt;
+    pt->ventana = new QMdiSubWindow;
+    newTab2[nbTypes] = centralArea->addSubWindow(pt->ventana);
     nbTypes+=1;
-    configurateur** oldTab = Types;
-    Types = newTab;
+    Configurateur** oldTab = types;
+    QMdiSubWindow** oldTab2 = sub;
+    types = newTab;
+    sub = newTab2;
     delete [] oldTab;
+    delete [] oldTab2;
 
     typeAut->addItem(pt->getNom());
     configLay->addWidget(pt);
     pt->hide();
+    //pt->ventana->close();
+
+    //connect(pt->load,SIGNAL(clicked()),this,SLOT(load()));
+    connect(pt->go,SIGNAL(clicked()),this,SLOT(setSubWindow()));
 }
 
 void Interface::ComboSynch(int b){
     for (unsigned int i = 1; i < nbTypes; i++){
         if ((int)i==b){
-            if(Types[i]->isVisible()==false) Types[i]->show();
+            if(types[i]->isVisible()==false) types[i]->show();
         }
         else{
-            if(Types[i]->isVisible()) Types[i]->hide();
+            if(types[i]->isVisible()) types[i]->hide();
         }
     }
+}
+
+void Interface::setSubWindow(){
+    /*
+    for (unsigned int i =1; i < nbTypes; i++){
+        if(types[i]->isVisible()){
+            types[i]->setAutomate();
+            types[i]->ventana->setWidget(types[i]->automat);
+            types[i]->ventana->show();
+        }
+    }*/
+    unsigned int index = typeAut->currentIndex();
+    types[index]->setAutomate();
+    types[index]->ventana->setWidget(types[index]->automat);
+    types[index]->ventana->show();
+}
+
+void Interface::load(){
+    for (unsigned int i =1; i < nbTypes; i++){
+        if(types[i]->isVisible()){
+            types[i]->loadAutomate();
+            types[i]->ventana->setWidget(types[i]->automat);
+            types[i]->ventana->show();
+        }
+    }
+}
+
+void Interface::synch(){
+    /*std::cout<<"synch"<<std::endl;
+    if(sub->isVisible()) sub->hide();
+    else sub->show();*/
 }

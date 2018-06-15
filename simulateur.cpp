@@ -37,7 +37,7 @@ void Simulateur::next() {
 	if (depart == nullptr) throw AutomateException("etat depart indefini");
    rang++;
 	build(rang%nbMaxEtats);
-	automate.appliquerTransition(dynamic_cast<const Etat1D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
+    //automate.appliquerTransition(dynamic_cast<const Etat1D&>(*etats[(rang - 1) % nbMaxEtats]), *etats[rang%nbMaxEtats]);
 }
 
 void Simulateur::run(unsigned int nb_steps) {

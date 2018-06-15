@@ -4,97 +4,112 @@
 #include <QWidget>
 #include <QMainWindow>
 #include <QToolBar>
-#include <QDockWidget>
-#include <QTabWidget>
+//#include <QDockWidget>
+//#include <QTabWidget>
 #include <QMdiArea>
-#include <QLabel>
-#include <QPushButton>
+#include <QMdiSubWindow>
+#include <QFormLayout>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QSpinBox>
-#include <QLineEdit>
 #include <QComboBox>
+#include <QSpinBox>
+#include <QLabel>
+#include <QPushButton>
+//#include <QLineEdit>
 #include <QString>
 #include "Automates.h"
 
 
-class configurateur : public QWidget{
+class Configurateur : public QWidget{
     Q_OBJECT
-    QVBoxLayout* principal;
-    QHBoxLayout* commun;
-    QSpinBox* dim;
-    QLabel* dimension;
+    friend class Interface;
+    QHBoxLayout* principal;
     QPushButton* go;
+    virtual void setAutomate() = 0;
 protected:
-    QVBoxLayout* specifique;
-    Automate* automat;
-public:
-    configurateur();
-    virtual ~configurateur();
-    virtual QString getNom();
-    static configurateur* InstanceUnique;
     static QString nom;
-    static configurateur* getInstance();
+    QHBoxLayout* specifique;
+    Automate* automat;
+    QMdiSubWindow* ventana;
+public:
+    Configurateur();
+    virtual ~Configurateur();
+    virtual QString getNom() = 0;
 private slots:
-    virtual void setAutomate()=0;
+    virtual void loadAutomate() = 0;
 };
 
-class config1D : public configurateur{
+class Config1D : public Configurateur{
     Q_OBJECT
+    friend class Interface;
+    static QString nom;
     QHBoxLayout* C;
     QSpinBox* col;
     QLabel* colors;
-    config1D(const config1D&) = delete;
-    config1D& operator=(const config1D&) = delete;
+    Config1D(const Config1D&) {}
+    Config1D& operator=(const Config1D&) = delete;
+    void setAutomate();
 protected:
 public:
-    config1D();
-    ~config1D();
+    Config1D();
+    ~Config1D();
     QString getNom();
-    static QString nom;
 private slots:
-    void setAutomate();
+    void loadAutomate();
 };
 
-class config2D : public configurateur{
+class Config2D : public Configurateur{
     Q_OBJECT
-    QVBoxLayout* lay1;
-    QHBoxLayout* layMin;
-    QHBoxLayout* layMax;
+    friend class Interface;
+    static QString nom;
+    QLabel* dimension2;
     QLabel* live;
     QLabel* die;
+    QSpinBox* dim2;
     QSpinBox* Min;
     QSpinBox* Max;
-    config2D(const config2D&) = delete;
-    config2D& operator=(const config2D&) = delete;
+    Config2D(const Config2D&) {}
+    Config2D& operator=(const Config2D&) = delete;
+    void setAutomate();
 protected:
 public:
-    config2D();
-    ~config2D();
+    Config2D();
+    ~Config2D();
     QString getNom();
-    static QString nom;
 private slots:
+    void loadAutomate();
     void synchMax(int);
     void synchMin(int);
-    void setAutomate();
 };
 
 class Interface : public QMainWindow{
     Q_OBJECT
+    //friend class Configurateur;
+    static Interface* interfaceUnique;
     unsigned int nbTypes;
-    configurateur** Types;
+    Configurateur** types;
+    QMdiSubWindow** sub;
+    QToolBar* bar;
     QWidget* configBar;
     QVBoxLayout* configLay;
-    QToolBar* Bar;
     QComboBox* typeAut;
     QLabel* choixtype;
-    QPushButton* go;
+    QPushButton* loadAut;
+    Interface();
+    Interface(const Interface&) = delete;
+    Interface& operator=(const Interface&) = delete;
+protected:
+    QMdiArea* centralArea;
 signals:
 public:
-    Interface();
-    void addAutoType(configurateur* pt);
+    static Interface* getInterface();
+    static void libererInterface();
+    void addAutoType(Configurateur* pt);
 private slots:
     void ComboSynch(int b);
+    void setSubWindow();
+    void load();
+    void synch();
 };
 
 #endif // CONFIGURATEUR_H

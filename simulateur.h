@@ -1,26 +1,28 @@
 #ifndef SIMULATEUR_H_INCLUDED
 #define SIMULATEUR_H_INCLUDED
 
+#include "automates.h"
+
 class Simulateur {
-	const Automate1D& automate;
+    const Automate1D& automate;
     Etat** etats;
     const Etat* depart;
-	 unsigned int nbMaxEtats;
+     unsigned int nbMaxEtats;
     unsigned int rang;
-	 void build(unsigned int c);
+     void build(unsigned int c);
     Simulateur(const Simulateur& s);
     Simulateur& operator=(const Simulateur& s);
 
 public:
-	Simulateur(const Automate1D& a, unsigned int buffer = 2);
-	Simulateur(const Automate1D& a, const Etat1D& dep, unsigned int buffer = 2);
-	void setEtatDepart(const Etat& e);
-	void run(unsigned int nbSteps); // génère les n prochains états
-	void next(); // génère le prochain état
-	const Etat& dernier() const;
-	unsigned int getRangDernier() const { return rang; }
-	void reset(); // revenir à l'état de départ
-	~Simulateur();
+    Simulateur(const Automate1D& a, unsigned int buffer = 2);
+    Simulateur(const Automate1D& a, const Etat1D& dep, unsigned int buffer = 2);
+    void setEtatDepart(const Etat& e);
+    void run(unsigned int nbSteps); // gï¿½nï¿½re les n prochains ï¿½tats
+    void next(); // gï¿½nï¿½re le prochain ï¿½tat
+    const Etat& dernier() const;
+    unsigned int getRangDernier() const { return rang; }
+    void reset(); // revenir ï¿½ l'ï¿½tat de dï¿½part
+    ~Simulateur();
 
 };
 
