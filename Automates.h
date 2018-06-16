@@ -51,6 +51,7 @@ private slots:
 class Automate : public QWidget{
     Q_OBJECT
     friend class Configurateur;
+    friend class SaveManager;
     QLabel* configuration;
 protected:
     AutoCell* grille;
@@ -96,6 +97,7 @@ class Automate {
 class Automate1D : public Automate {
     Q_OBJECT
     friend class Config1D;
+    friend class SaveManager;
     friend class AutomateManager;
     const unsigned int etatsPossibles;
     unsigned int*** regles;
@@ -118,6 +120,9 @@ public:
     //unsigned short int getNumero() const { return numero; }
     //const std::string& getNumeroBit() const { return numeroBit; }
     Etat* appliquerTransition(const Etat* dep) const;
+    unsigned int getEtatsPossibles();
+    unsigned int getRegles(unsigned int i,unsigned int j,unsigned int k);
+    void setRegles(unsigned int i, unsigned int j, unsigned int k,unsigned int v);
 private slots:
     void synchDimension(int);
     void synchRegles(unsigned int i, unsigned int j, unsigned int k);
@@ -127,11 +132,13 @@ private slots:
 class Automate2D : public Automate {
     Q_OBJECT
     friend class Config2D;
+    friend class SaveManager;
 private:
     unsigned int minToNotDie;
     unsigned int maxToNotDie;
     //Etat* getCopy(const Etat* e);
 protected:
+    Automate2D (Automate2D& a);
     Automate2D (unsigned int minNd, unsigned int maxNd);
     ~Automate2D () ;
     void addEtatGenerators();
@@ -172,6 +179,7 @@ class Automate2D :  public Automate
 
 class AutomateFdF : public Automate{
     Q_OBJECT
+    friend class SaveManager;
 protected:
     void addEtatGenerators();
 public:

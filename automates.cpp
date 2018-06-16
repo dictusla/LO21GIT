@@ -264,12 +264,28 @@ void Automate1D::synchRegles(unsigned int i, unsigned int j, unsigned int k){
     else regles[i][j][k] += 1;
 }
 
+unsigned int Automate1D::getRegles(unsigned int i,unsigned int j,unsigned int k){
+    return regles[i][j][k];
+}
+
+void Automate1D::setRegles(unsigned int i, unsigned int j, unsigned int k,unsigned int v) {
+    regles[i][j][k]=v;
+}
+
+unsigned int Automate1D::getEtatsPossibles(){
+    return etatsPossibles;
+}
+
 void Automate1D::simuler(){
     clearBuffer();
     for (int i = 0; i < dim2->value(); i++){
         const Etat* pt = getNext();
         grille->actualize(pt);
     }
+}
+
+Automate2D::Automate2D(Automate2D &a) : Automate2D(a.getMinToNotDie(),a.getMaxToNotDie())
+{
 }
 
 Automate2D::Automate2D (unsigned int minNd, unsigned int maxNd) : minToNotDie (minNd), maxToNotDie (maxNd) {
